@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Camera Control for Sony FX30 and A7C II</title>
+<meta name="description" content="A free Windows app that shows a Sony FX30 and a Sony A7C II side by side over Wi-Fi: live view, settings, recording, monitoring tools, phones and file copying.">
+<meta property="og:title" content="Camera Control for Sony FX30 and A7C II">
+<meta property="og:description" content="Two Sony cameras side by side on one Windows laptop, over Wi-Fi.">
+<meta property="og:image" content="img/32-sync-settings.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314171c'/%3E%3Crect x='5' y='10' width='10' height='12' rx='2' fill='none' stroke='%234fa3ff' stroke-width='2'/%3E%3Crect x='17' y='10' width='10' height='12' rx='2' fill='none' stroke='%234fa3ff' stroke-width='2'/%3E%3Ccircle cx='16' cy='6' r='2' fill='%23ef4444'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1216;
+  --bg-2: #151920;
+  --panel: #1b2028;
+  --panel-2: #222833;
+  --line: #2b3240;
+  --text: #e6e9ee;
+  --text-2: #a7afbd;
+  --text-3: #8f98a8;
+  --blue: #4fa3ff;
+  --blue-dim: #1d3a5c;
+  --red: #ef4444;
+  --amber: #f5b53d;
+  --green: #3ccf6e;
+  --radius: 10px;
+  --mono: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+  --sans: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 var(--sans); -webkit-font-smoothing: antialiased; }
+img { max-width: 100%; display: block; }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, kbd, .mono { font-family: var(--mono); font-size: .88em; }
+code { background: var(--panel-2); border: 1px solid var(--line); padding: .1em .4em; border-radius: 5px; color: #d5dbe5; }
+kbd { background: var(--panel-2); border: 1px solid var(--line); border-bottom-width: 2px; padding: .05em .45em; border-radius: 5px; }
+pre { background: #0b0d11; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; overflow-x: auto; font: 14px/1.6 var(--mono); color: #d5dbe5; }
+pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+/* Top bar */
+.top { position: sticky; top: 0; z-index: 20; background: rgba(15,18,22,.86); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 24px; height: 60px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--text); white-space: nowrap; }
+.brand:hover { text-decoration: none; }
+.brand svg { flex: none; }
+.top nav { display: flex; gap: 22px; margin-left: auto; }
+.top nav a { color: var(--text-2); font-size: 15px; }
+.top nav a:hover { color: var(--text); text-decoration: none; }
+.btn { display: inline-flex; align-items: center; gap: 10px; border-radius: 8px; font-weight: 600; padding: 10px 18px; border: 1px solid transparent; cursor: pointer; font: 600 15px var(--sans); }
+.btn:hover { text-decoration: none; }
+.btn-primary { background: var(--blue); color: #06121f; }
+.btn-primary:hover { background: #6db3ff; }
+.btn-ghost { border-color: var(--line); color: var(--text); background: var(--panel); }
+.btn-ghost:hover { border-color: #3c4556; }
+.btn-sm { padding: 7px 14px; font-size: 14px; }
+
+/* Hero */
+.hero { padding: 72px 0 40px; background: var(--bg-2); border-bottom: 1px solid var(--line); }
+.hero h1 { font-size: clamp(34px, 5vw, 54px); line-height: 1.08; letter-spacing: -.02em; margin: 0 0 18px; max-width: 16ch; }
+.hero h1 span { color: var(--blue); }
+.hero p.lead { font-size: 19px; color: var(--text-2); max-width: 60ch; margin: 0 0 30px; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.dl-meta { color: var(--text-3); font-size: 14px; }
+.dl-meta b { color: var(--text-2); font-weight: 500; }
+.hero-shot { margin-top: 48px; border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.02); overflow: hidden; cursor: zoom-in; }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; padding: 0; list-style: none; }
+.pills li { font: 500 13px var(--mono); color: var(--text-2); background: var(--panel); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px; }
+.pills li.rec::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--red); margin-right: 7px; vertical-align: 1px; }
+
+/* Sections */
+section.block { padding: 80px 0; border-top: 1px solid var(--line); }
+h2 { font-size: clamp(28px, 3.5vw, 38px); line-height: 1.15; letter-spacing: -.015em; margin: 0 0 14px; }
+.section-lead { color: var(--text-2); max-width: 64ch; margin: 0 0 40px; font-size: 17px; }
+
+/* Showcase */
+.feature { display: grid; grid-template-columns: 1fr 1.35fr; gap: 48px; align-items: center; margin-bottom: 72px; }
+.feature:nth-child(even) { grid-template-columns: 1.35fr 1fr; }
+.feature:nth-child(even) .feature-text { order: 2; }
+.feature h3 { font-size: 23px; margin: 0 0 10px; letter-spacing: -.01em; }
+.feature p { color: var(--text-2); margin: 0 0 12px; }
+.feature ul { color: var(--text-2); padding-left: 20px; margin: 0; }
+.feature ul li { margin-bottom: 4px; }
+.shot { border-radius: var(--radius); border: 1px solid var(--line); overflow: hidden; background: var(--panel); cursor: zoom-in; box-shadow: 0 16px 40px rgba(0,0,0,.35); }
+.shot figcaption { font-size: 13px; color: var(--text-3); padding: 8px 12px; border-top: 1px solid var(--line); background: var(--bg-2); }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.tabs button { font: 500 13px var(--mono); padding: 6px 12px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); color: var(--text-2); cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--blue-dim); border-color: var(--blue); color: var(--text); }
+.tabs button[aria-selected="true"]::before { content: "● "; color: var(--blue); }
+.tool-desc { min-height: 3.3em; }
+
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+.card h4 { margin: 0 0 6px; font-size: 16px; }
+.card p { margin: 0; color: var(--text-2); font-size: 15px; }
+.card .shot { margin-top: 14px; box-shadow: none; }
+
+/* Manual */
+.manual { display: grid; grid-template-columns: 240px 1fr; gap: 56px; align-items: start; }
+.toc { position: sticky; top: 84px; font-size: 14px; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 8px; }
+.toc p { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin: 0 0 10px; }
+.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; }
+.toc a { display: block; color: var(--text-2); padding: 5px 10px; border-left: 2px solid var(--line); }
+.toc a::before { content: counter(toc, decimal-leading-zero) "  "; font-family: var(--mono); font-size: 12px; color: var(--text-3); }
+.toc a:hover, .toc a.active { color: var(--text); text-decoration: none; border-left-color: var(--blue); }
+.doc { min-width: 0; max-width: 760px; }
+.doc h3 { font-size: 24px; margin: 56px 0 12px; padding-top: 4px; letter-spacing: -.01em; }
+.doc h3:first-child { margin-top: 0; }
+.doc h4 { font-size: 17px; margin: 26px 0 6px; }
+.doc p, .doc li { color: #c9cfd9; }
+.doc ol, .doc ul { padding-left: 22px; }
+.doc li { margin-bottom: 6px; }
+.doc .shot { margin: 18px 0; }
+.doc table { width: 100%; border-collapse: collapse; margin: 14px 0 18px; font-size: 15px; }
+.doc th, .doc td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.doc th { color: var(--text-3); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; }
+.doc td:first-child { white-space: nowrap; color: var(--text); font-weight: 500; }
+.table-scroll { overflow-x: auto; }
+.note { border: 1px solid #2c4a6e; background: #121b26; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+.note.warn { border-color: #5a4720; background: #1d1810; }
+.note p { margin: 0; }
+.note p + p { margin-top: 8px; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.path { font-family: var(--mono); font-size: .88em; color: #d5dbe5; }
+
+/* Download */
+.download-box { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; background: linear-gradient(180deg, var(--panel) 0%, var(--bg-2) 100%); border: 1px solid var(--line); border-radius: 14px; padding: 40px; }
+.download-box h2 { margin-bottom: 10px; }
+.download-box ul { color: var(--text-2); padding-left: 20px; }
+.checklist { list-style: none; padding: 0 !important; }
+.checklist li { padding-left: 26px; position: relative; margin-bottom: 8px; }
+.checklist li::before { content: ""; position: absolute; left: 0; top: .45em; width: 12px; height: 12px; border-radius: 3px; border: 2px solid var(--blue); }
+.release-card { background: #0b0d11; border: 1px solid var(--line); border-radius: 10px; padding: 22px; font-family: var(--mono); font-size: 14px; }
+.release-card .row { display: flex; justify-content: space-between; gap: 16px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.release-card .row:last-of-type { border-bottom: 0; }
+.release-card .k { color: var(--text-3); }
+.release-card .v { color: var(--text); text-align: right; }
+.release-card .btn { width: 100%; justify-content: center; margin-top: 18px; font-family: var(--sans); }
+
+footer { border-top: 1px solid var(--line); padding: 36px 0 56px; color: var(--text-3); font-size: 14px; }
+footer p { margin: 0 0 8px; max-width: 80ch; }
+
+/* Lightbox */
+dialog.lightbox { padding: 0; border: 1px solid var(--line); border-radius: 12px; background: #000; max-width: 96vw; max-height: 94vh; }
+dialog.lightbox::backdrop { background: rgba(0,0,0,.82); }
+dialog.lightbox img { max-width: 96vw; max-height: 88vh; width: auto; height: auto; }
+dialog.lightbox p { margin: 0; padding: 10px 14px; color: var(--text-2); font-size: 14px; background: var(--bg-2); }
+dialog.lightbox button { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.6); color: #fff; border: 1px solid #444; border-radius: 6px; padding: 4px 10px; cursor: pointer; font: 500 13px var(--sans); }
+
+@media (max-width: 960px) {
+  .feature, .feature:nth-child(even) { grid-template-columns: 1fr; gap: 22px; }
+  .feature:nth-child(even) .feature-text { order: 0; }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+  .manual { grid-template-columns: 1fr; }
+  .toc { position: static; max-height: none; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; background: var(--bg-2); }
+  .download-box { grid-template-columns: 1fr; padding: 26px; }
+}
+@media (max-width: 640px) {
+  .wrap { padding: 0 16px; }
+  .top nav { display: none; }
+  .top .btn { margin-left: auto; }
+  .grid-3 { grid-template-columns: 1fr; }
+  .hero { padding-top: 48px; }
+  section.block { padding: 56px 0; }
+  .doc td:first-child { white-space: normal; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#1b2028"/><rect x="5" y="10" width="10" height="12" rx="2" fill="none" stroke="#4fa3ff" stroke-width="2"/><rect x="17" y="10" width="10" height="12" rx="2" fill="none" stroke="#4fa3ff" stroke-width="2"/><circle cx="16" cy="6" r="2" fill="#ef4444"/></svg>
+      Camera Control
+    </a>
+    <nav aria-label="Sections">
+      <a href="#showcase">Features</a>
+      <a href="#manual">Manual</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="#download">Download</a>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap">
+    <ul class="pills" aria-label="At a glance">
+      <li>Sony FX30</li><li>Sony A7C II</li><li>Windows 11, 64-bit</li><li>Wi-Fi</li><li class="rec">Free</li>
+    </ul>
+    <h1>Two Sony cameras, <span>one laptop screen.</span></h1>
+    <p class="lead">Camera Control shows a Sony FX30 and a Sony A7C II side by side on a Windows laptop over Wi-Fi. You get both live views, battery and card time, recording, and the core exposure settings, plus false colour, zebra, peaking, a waveform and a histogram drawn on the laptop.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary dl-link" href="https://github.com/goteam2/camera-control/releases/latest">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        Download for Windows
+      </a>
+      <a class="btn btn-ghost" href="#manual">Read the manual</a>
+      <span class="dl-meta"><b class="dl-version">Version 0.1.0</b> · <span class="dl-size">zip, about 84 MB</span> · nothing to install</span>
+    </div>
+    <img class="hero-shot zoom" src="img/32-sync-settings.png" width="1580" height="955" alt="Camera Control main window with an FX30 on the left and an A7C II on the right, each with live view, monitoring tool switches, a status line, setting tiles and a record button. The sidebar on the left holds Network, Phones, Add camera, Swap sides, Link settings, Copy files and About.">
+  </div>
+</section>
+
+<!-- ============ SHOWCASE ============ -->
+<section class="block" id="showcase">
+  <div class="wrap">
+    <h2>Built for a two-camera shoot run from one seat</h2>
+    <p class="section-lead">Each camera gets its own column. Everything in a column belongs to that camera, so a problem with one camera never hides or stops the other.</p>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-text">
+          <h3>Change settings and see the camera confirm them</h3>
+          <p>Each setting is a tile showing the value the camera is using now. Click it and pick from the values the camera allows at that moment.</p>
+          <p>The new value shows in amber until the camera confirms it, then flashes green. If the camera does not confirm within 5 seconds, the old value comes back and a red message says so. You never see a value the camera isn't actually using.</p>
+          <ul>
+            <li>Shutter (or shutter angle), ISO (or EI in Cine EI), aperture, white balance and Kelvin</li>
+            <li>FX30: Base ISO, shooting mode, Base Look, Monitor LUT</li>
+            <li>Picture Profile and Gamma Display Assist on both</li>
+          </ul>
+        </div>
+        <figure class="shot zoom" style="margin:0"><img src="img/02-pending-and-confirmed.png" width="1586" height="953" loading="lazy" alt="A tile showing a new value in amber while waiting for the camera, and another flashing green once confirmed."><figcaption>Amber means waiting for the camera; green means confirmed.</figcaption></figure>
+      </div>
+
+      <div class="feature">
+        <div class="feature-text">
+          <h3>Monitoring tools, drawn on the laptop</h3>
+          <div class="tabs" role="tablist" aria-label="Live view tools">
+            <button role="tab" aria-selected="true" data-img="img/21-false-colour-slog3.png" data-desc="False colour on the S-Log3 scale (before the LUT) or the Rec.709 scale (after it). A legend under the picture shows each band and its range.">False colour</button>
+            <button role="tab" aria-selected="false" data-img="img/26-waveform.png" data-desc="Brightness waveform, or an RGB parade, along the bottom of the picture, with guide lines at 18% grey and 90% white on the S-Log3 scale.">Waveform</button>
+            <button role="tab" aria-selected="false" data-img="img/25-zebra.png" data-desc="Zebra stripes above a level (94% by default) or in a range around one (70% ± 5% by default), in 1% steps.">Zebra</button>
+            <button role="tab" aria-selected="false" data-img="img/23-peaking.png" data-desc="Focus peaking in red, yellow, blue or white, at low, medium or high sensitivity.">Peaking</button>
+            <button role="tab" aria-selected="false" data-img="img/20-lut.png" data-desc="Load any 3D .cube LUT for the live view. An S-Log3 / S-Gamut3.Cine to Rec.709 LUT comes with the app.">LUT</button>
+            <button role="tab" aria-selected="false" data-img="img/27-histogram.png" data-desc="Luma or RGB histogram in the corner, with markers that light up when more than 1% of the picture clips.">Histogram</button>
+          </div>
+          <p class="tool-desc" id="tool-desc">False colour on the S-Log3 scale (before the LUT) or the Rec.709 scale (after it). A legend under the picture shows each band and its range.</p>
+          <p>These tools change only the picture on the laptop. Nothing on the camera or in the recording changes. Each camera keeps its own choices.</p>
+        </div>
+        <figure class="shot zoom" style="margin:0"><img id="tool-img" src="img/21-false-colour-slog3.png" width="1600" height="960" loading="lazy" alt="Live view monitoring tool in use on both cameras."><figcaption>Six switches above each live view: LUT, False colour, Peaking, Zebra, Waveform, Histogram.</figcaption></figure>
+      </div>
+
+      <div class="feature">
+        <div class="feature-text">
+          <h3>Keep both cameras matched</h3>
+          <p><b>Copy settings</b> sets the other camera to match this one in one step. When a value doesn't exist on the other camera, it gets the closest one, and the column says exactly what matched and what didn't.</p>
+          <p><b>Link settings</b> repeats every change you make in the app on the other camera too, once the first camera confirms it.</p>
+        </div>
+        <figure class="shot zoom" style="margin:0"><img src="img/32-sync-settings.png" width="1580" height="955" loading="lazy" alt="After copying settings from the FX30, the A7C II column says six settings match and lists what was not copied."><figcaption>"Copied from the FX30: 6 settings match. Not copied: …"</figcaption></figure>
+      </div>
+
+      <div class="feature">
+        <div class="feature-text">
+          <h3>Copy clips off the cards over Wi-Fi</h3>
+          <p>Copy files lists each camera's card side by side. Tick the files, or press <b>Clips</b> to pick every movie clip, then press Copy.</p>
+          <p>Both cameras copy at once, one file at a time each. A copy pauses while its camera records. Nothing on the cards is changed or deleted.</p>
+        </div>
+        <figure class="shot zoom" style="margin:0"><img src="img/31-copy-files.png" width="1140" height="680" loading="lazy" alt="Copy files window listing clips and photos from both cameras, with progress and Copied marks."><figcaption>Each camera's files go into their own folder.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <h4>Touch to focus</h4>
+        <p>Click the live view to focus there, the way the camera's own touch screen would. Right-click cancels the touch.</p>
+        <figure class="shot zoom" style="margin:14px 0 0"><img src="img/24-touch-focus.png" width="1600" height="960" loading="lazy" alt="Touch focus marker on the FX30 live view."></figure>
+      </div>
+      <div class="card">
+        <h4>Enlarge one camera</h4>
+        <p>Double-click a live view to give that camera most of the window. The other camera keeps its live view and record button at the side. <kbd>Esc</kbd> goes back.</p>
+        <figure class="shot zoom" style="margin:14px 0 0"><img src="img/06-enlarged.png" width="1586" height="953" loading="lazy" alt="FX30 enlarged, A7C II in a narrow side column."></figure>
+      </div>
+      <div class="card">
+        <h4>Calm when Wi-Fi drops</h4>
+        <p>The last picture stays, dimmed, while the app reconnects by itself. If the camera was recording, the column tells you the camera keeps recording on its own.</p>
+        <figure class="shot zoom" style="margin:14px 0 0"><img src="img/07-dropped-while-recording.png" width="1586" height="953" loading="lazy" alt="A7C II column reconnecting, with a note that the camera keeps recording."></figure>
+      </div>
+      <div class="card">
+        <h4>Phones as extra monitors</h4>
+        <p>Turn on Phones and any phone on the same network opens a web page with the live view, tiles and record button. A six-digit PIN keeps others out.</p>
+      </div>
+      <div class="card">
+        <h4>Its own camera network</h4>
+        <p>The laptop can host a Wi-Fi network for the cameras. No router, no internet, and the laptop can stay on another Wi-Fi network at the same time.</p>
+      </div>
+      <div class="card">
+        <h4>Try it without cameras</h4>
+        <p>Start with <code>--fake</code> to get two pretend cameras and a small window that drops connections, drains batteries and switches modes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MANUAL ============ -->
+<section class="block" id="manual">
+  <div class="wrap">
+    <h2>How to use Camera Control</h2>
+    <p class="section-lead">Everything from unzipping the app to copying the day's clips. The same setup notes come with the download in <code>README.txt</code>.</p>
+
+    <div class="manual">
+      <aside class="toc" aria-label="Manual contents">
+        <p>Contents</p>
+        <ol>
+          <li><a href="#m-needs">What you need</a></li>
+          <li><a href="#m-start">Install and first start</a></li>
+          <li><a href="#m-network">Getting the cameras on Wi-Fi</a></li>
+          <li><a href="#m-add">Adding a camera</a></li>
+          <li><a href="#m-window">The main window</a></li>
+          <li><a href="#m-settings">Changing settings</a></li>
+          <li><a href="#m-record">Recording</a></li>
+          <li><a href="#m-tools">Live view tools</a></li>
+          <li><a href="#m-focus">Touch to focus</a></li>
+          <li><a href="#m-sync">Matching the two cameras</a></li>
+          <li><a href="#m-copy">Copying files</a></li>
+          <li><a href="#m-phones">Phones</a></li>
+          <li><a href="#m-problems">When something goes wrong</a></li>
+          <li><a href="#m-fake">Trying it without cameras</a></li>
+          <li><a href="#m-files">Settings, passwords and logs</a></li>
+          <li><a href="#m-legal">Licence and warranty</a></li>
+        </ol>
+      </aside>
+
+      <article class="doc">
+        <h3 id="m-needs">What you need</h3>
+        <ul>
+          <li>A Windows 11 laptop, 64-bit, with Wi-Fi. Nothing needs installing and no administrator rights are needed.</li>
+          <li>A Sony FX30, a Sony A7C II, or one of each. The app shows up to two cameras. Other models show up in a network search but can't be picked.</li>
+          <li>A Wi-Fi network both cameras and the laptop can join. The laptop can host one itself (see <a href="#m-network">Getting the cameras on Wi-Fi</a>).</li>
+        </ul>
+        <div class="note"><p>Live view arrives as a stream of still pictures at 1024×576, about 15 frames a second on a good link. It is for framing, focus and exposure, not a recording-quality video feed.</p></div>
+
+        <h3 id="m-start">Install and first start</h3>
+        <ol>
+          <li><a class="dl-link" href="https://github.com/goteam2/camera-control/releases/latest">Download the zip</a> and unzip it anywhere you can write to: the desktop, <span class="path">%LOCALAPPDATA%\CameraControl</span> or a USB stick. You get one <span class="path">CameraControl</span> folder.</li>
+          <li>Keep every file in that folder together. The app needs the DLL files and the <span class="path">CrAdapter</span> folder next to <span class="path">CameraControl.exe</span>.</li>
+          <li>Run <span class="path">CameraControl.exe</span>.</li>
+        </ol>
+        <div class="note warn">
+          <p><b>Windows SmartScreen may warn you.</b> The exe isn't signed, so Windows SmartScreen or an antivirus program may warn you the first time. In the SmartScreen window, click <b>More info</b>, then <b>Run anyway</b>.</p>
+        </div>
+        <p>The first start shows a notice about the camera warranty and Sony's licence (see <a href="#m-legal">Licence and warranty</a>). Click <b>I understand</b> to carry on. The app remembers this and doesn't show it again; the About button shows it any time.</p>
+        <figure class="shot zoom" style="max-width:420px"><img src="img/12-first-start-notice.png" width="570" height="333" loading="lazy" alt="First-start notice with an I understand button."></figure>
+
+        <h3 id="m-network">Getting the cameras on Wi-Fi</h3>
+        <p>The cameras and the laptop must be on the same Wi-Fi network. You have two ways to do that.</p>
+
+        <h4>Option 1: the laptop hosts the camera network</h4>
+        <p>Click <b>Network</b> at the top of the sidebar, then start the camera network. The window shows a network name and password. This needs no router and no internet, and the laptop can stay on another Wi-Fi network at the same time.</p>
+        <ol>
+          <li>Start the camera network in the app.</li>
+          <li>On the camera: <b>MENU › Network › Wi-Fi › Access Point Set.</b> Pick the network name from the list, or use Manual Setting if it isn't listed, and type the password.</li>
+          <li>Turn on <b>PC Remote</b> on the camera, connecting over Wi-Fi.</li>
+          <li>The camera appears under <b>Joined</b> within a few seconds.</li>
+        </ol>
+        <p>You only do this once per camera. After that, start the network on set and the cameras join it by themselves. The network stops when Camera Control closes. A phone on this network shows no internet; that is expected.</p>
+
+        <h4>Option 2: a network you already have</h4>
+        <p>A phone hotspot, Windows Mobile Hotspot, a travel router or a home network all work. On each camera, turn on <b>PC Remote</b> and join the network under <b>Access Point Set.</b></p>
+
+        <h3 id="m-add">Adding a camera</h3>
+        <p>Before you start, leave access authentication on in the camera (<b>MENU › Network › Network Option › Access Authen. Settings</b>) and note its user name and password.</p>
+        <ol>
+          <li>Click <b>Add camera</b> in the sidebar, or in an empty column.</li>
+          <li>Choose <b>Type the IP address</b> and enter the address the camera shows under <b>Network › Wi-Fi › Display Wi-Fi Info</b>, then pick the model. Or choose <b>Search the network</b>, which takes about 30 seconds. Typing the address is the reliable way in; the search can miss cameras on some networks.</li>
+          <li>Enter the access authentication user name and password, then click <b>Get fingerprint</b>.</li>
+          <li>Compare the fingerprint the app shows with the one on the camera: <b>MENU › Network › Network Option › Access Authen. Settings › Show Settings › Fingerprint</b>. If they match, click <b>Accept</b>.</li>
+        </ol>
+        <figure class="shot zoom"><img src="img/10-add-camera.png" width="1586" height="953" loading="lazy" alt="Add camera dialog with IP address, model, name, user name, password and a fingerprint to check."></figure>
+        <p>After that, the app connects both cameras by itself every time it starts. Each connection takes about a second and a half.</p>
+
+        <h3 id="m-window">The main window</h3>
+        <p>Each camera has a column. From top to bottom: the camera's name, IP address and mode; the six live view tool switches; the live view; the status line; messages; the setting tiles; and the record button.</p>
+        <p>The <b>status line</b> shows battery, card time left, and whether the camera is recording, for example <span class="mono">77%  Card 1: 2 h 34 min  STBY</span>. Battery turns amber at 20% and red at 10%. Card time turns amber at 10 minutes and red at 3 minutes.</p>
+        <h4>Sidebar</h4>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Button</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td>Network</td><td>Opens the camera network window. A green dot means the network is on.</td></tr>
+            <tr><td>Phones</td><td>Lets phones connect to the app (see <a href="#m-phones">Phones</a>).</td></tr>
+            <tr><td>Add camera</td><td>Adds a camera on the free side. Greyed out when both sides have a camera.</td></tr>
+            <tr><td>Swap sides</td><td>Swaps the left and right cameras.</td></tr>
+            <tr><td>Link settings</td><td>Repeats each change on the other camera (see <a href="#m-sync">Matching the two cameras</a>). A green dot means it is on.</td></tr>
+            <tr><td>Copy files</td><td>Opens the Copy files window. A blue dot shows while files copy.</td></tr>
+            <tr><td>About</td><td>The version, the licence notice and the warranty notice.</td></tr>
+          </tbody>
+        </table></div>
+        <h4>Column menu (the ⋯ button)</h4>
+        <p>Swap sides, live view quality (High or Low), Copy settings to the other camera, Edit login, Change IP address, Disconnect or Reconnect, and Remove camera.</p>
+        <h4>Enlarge</h4>
+        <p>Click <b>Enlarge</b> or double-click a live view to give that camera most of the window, with its tiles in one row. The other camera moves to a narrow column that keeps its live view, status line and record button. Press <kbd>Esc</kbd>, click the button again or double-click the live view to go back.</p>
+
+        <h3 id="m-settings">Changing settings</h3>
+        <p>Click a tile to open a list of the values the camera allows right now, with the current one highlighted. Pick one with the mouse, or with the arrow keys and <kbd>Enter</kbd>.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>The tile shows</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><span class="swatch" style="background:var(--text)"></span>White value</td><td>The value the camera is using now.</td></tr>
+            <tr><td><span class="swatch" style="background:var(--amber)"></span>Amber value</td><td>Sent, waiting for the camera to confirm. The tile can't be changed again until it does.</td></tr>
+            <tr><td><span class="swatch" style="background:var(--green)"></span>Green flash</td><td>The camera confirmed the change.</td></tr>
+            <tr><td>Dashed border, padlock</td><td>Locked. The camera won't let the app change it right now. Click it to see why, for example "The camera's exposure mode (A) sets the shutter speed" or "Choose Kelvin white balance first".</td></tr>
+            <tr><td>Greyed</td><td>The camera isn't connected.</td></tr>
+          </tbody>
+        </table></div>
+        <p>If the camera doesn't confirm a change within 5 seconds, the tile goes back to the camera's real value and a red message such as "ISO change to 800 was not confirmed by the camera" appears in the column.</p>
+        <figure class="shot zoom"><img src="img/04-locked-tile-reason.png" width="1586" height="953" loading="lazy" alt="Clicking a locked aperture tile shows the reason it is locked."></figure>
+        <p>The app never changes the exposure mode, stills or movie mode, or shutter mode. Those stay on the camera, and the column header shows them as text.</p>
+
+        <h3 id="m-record">Recording</h3>
+        <p>Press and hold the record button for about one second. A bar fills while you hold; letting go early cancels. The status line then shows a red <b>REC</b> and a timer. Hold again to stop.</p>
+        <p>There is no keyboard shortcut for recording, so a stray key press can't start or stop it. In stills mode the button is greyed and says "Camera is in stills mode".</p>
+        <p>Closing the app while a camera records asks first. Closing the app doesn't stop the recording.</p>
+
+        <h3 id="m-tools">Live view tools</h3>
+        <p>Above each live view are six switches. A switch that is on is blue and says what it is set to. The ▼ arrow opens its menu. These tools change only the picture on the laptop, never the camera or the recording.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Switch</th><th>Choices</th></tr></thead>
+          <tbody>
+            <tr><td>LUT</td><td>Any 3D <code>.cube</code> file. <b>Load .cube…</b> adds your own. The S-Log3 / S-Gamut3.Cine to Rec.709 LUT comes with the app.</td></tr>
+            <tr><td>False colour</td><td><b>S-Log3</b> reads the camera picture before the LUT. <b>Rec.709</b> reads the picture as shown, after the LUT.</td></tr>
+            <tr><td>Peaking</td><td>Red, yellow, blue or white; low, medium or high.</td></tr>
+            <tr><td>Zebra</td><td><b>Above</b> a level (94% by default), or a <b>Range</b> around one (70% ± 5% by default).</td></tr>
+            <tr><td>Waveform</td><td>Luma, or an RGB parade.</td></tr>
+            <tr><td>Histogram</td><td>Luma, or RGB. The strips at each end light up when more than 1% of the picture clips.</td></tr>
+          </tbody>
+        </table></div>
+        <h4>Reading S-Log3 false colour</h4>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Colour</th><th>Meaning</th><th>Level</th></tr></thead>
+          <tbody>
+            <tr><td><span class="swatch" style="background:rgb(140,40,220)"></span>Purple</td><td>More than 6 stops under grey, almost no detail</td><td>under 5.7%</td></tr>
+            <tr><td><span class="swatch" style="background:rgb(20,100,255)"></span>Blue</td><td>Deep shadow, noisy (−6 to −4 stops)</td><td>5.7–12.2%</td></tr>
+            <tr><td><span class="swatch" style="background:rgb(40,200,70)"></span>Green</td><td>18% grey, ± ¼ stop</td><td>38.5–42.8%</td></tr>
+            <tr><td><span class="swatch" style="background:rgb(255,120,200)"></span>Pink</td><td>One stop over grey, light skin</td><td>47.1–51.5%</td></tr>
+            <tr><td><span class="swatch" style="background:rgb(255,225,0)"></span>Yellow</td><td>Near clipping, +5 stops</td><td>84.9–92%</td></tr>
+            <tr><td><span class="swatch" style="background:rgb(255,30,30)"></span>Red</td><td>Clipped</td><td>92% and over</td></tr>
+          </tbody>
+        </table></div>
+        <p>With the S-Log3 scale on, an amber line under the legend warns when the camera says its picture probably isn't log: its gamma isn't S-Log3, or its Monitor LUT or Gamma Display Assist is on.</p>
+        <p>The Rec.709 scale uses ARRI's bands: purple 0–2.5%, blue 2.5–4%, green 38–42%, pink 52–56%, yellow 97–99%, red 99–100%.</p>
+        <p>Each camera keeps its own choices, and they follow the camera when you swap sides.</p>
+
+        <h3 id="m-focus">Touch to focus</h3>
+        <p>Click once on a live view to focus there. The camera does what its own touch setting says, such as spot focus or tracking. A small circle marks the point, amber until the camera accepts it, then white.</p>
+        <p>While the camera allows it, a <b>Cancel touch</b> button sits in the top right of the live view; a right-click does the same. The camera's own focus frames (the focus area, faces and the tracking frame) are drawn as thin white outlines.</p>
+        <p>If the camera won't take a remote touch, the pointer stays an arrow and the reason shows when you click. A double-click still enlarges the camera and sends no touch.</p>
+
+        <h3 id="m-sync">Matching the two cameras</h3>
+        <h4>Copy settings once</h4>
+        <p>In a column's ⋯ menu, choose <b>Copy settings to the A7C II</b> (or to whichever camera is in the other column). The other camera is set to match. When it's done, the other column says what matched and what didn't, for example "Copied from the FX30: 6 settings match. Nearest: Aperture F4.0 for F2.8. Not copied: Shutter (shutter angle on the FX30)."</p>
+        <p>It is greyed out unless both cameras are connected, the other camera isn't recording and no copy is already running.</p>
+        <h4>Link settings</h4>
+        <p>Turn on <b>Link settings</b> in the sidebar. Each change you make in the app, on either camera, is then repeated on the other one once the first camera confirms it. Changes made on a phone count; changes made with the camera's own dials or menus don't. The link is off each time the app starts.</p>
+        <p>Some settings are never copied: Base ISO (the A7C II has none), Custom white balance (each camera measured its own), shutter angle, and ISO while the FX30 is in Cine EI. A setting with no exact match on the other camera gets the closest value, and the column says so.</p>
+
+        <h3 id="m-copy">Copying files</h3>
+        <ol>
+          <li>Click <b>Copy files</b> in the sidebar. Each camera's card is listed, left camera first.</li>
+          <li>Tick files, or use <b>All</b>, <b>Clips</b> (every movie clip) or <b>None</b>.</li>
+          <li>Press <b>Copy</b>. The first time, pick a folder; <b>Change…</b> picks another later. Each camera gets its own folder inside it, for example <span class="path">D:\Shoots\FX30\</span>.</li>
+        </ol>
+        <p>Each row then shows Waiting, a percentage, "Paused" while the camera records, Copied, Cancelled, or why it failed. You can close the window while files copy; they carry on, and the sidebar button shows a blue dot until they're done. Nothing on the cards is changed or deleted.</p>
+        <div class="note"><p>Copying over Wi-Fi is slower than a card reader, and live view may slow down while it runs. For a whole day of clips, a card reader is still faster.</p></div>
+
+        <h3 id="m-phones">Phones</h3>
+        <p>Click <b>Phones</b> in the sidebar, then <b>Let phones connect</b>. The window shows an address such as <span class="path">http://192.168.137.1:8080</span> and a six-digit PIN.</p>
+        <ol>
+          <li>On the phone, join the same Wi-Fi network as the laptop and open the address.</li>
+          <li>Type the PIN once.</li>
+          <li>Pick the FX30, the A7C II or both at the top of the page.</li>
+        </ol>
+        <p>The phone shows live view with focus frames, the status line, the setting tiles and the record button. Tap a tile to change it, tap the picture to focus, and hold the record button for a second to record. Each phone has a <b>Tools</b> button per camera for its own LUT, false colour, zebra, peaking, waveform and histogram.</p>
+        <p>Every phone and the laptop can change settings. If two people change the same setting, the later change wins, and every screen shows the value the camera confirmed. A phone can't add or remove cameras or change logins.</p>
+        <div class="note warn">
+          <p><b>Which browser to use.</b> On the phone whose hotspot the laptop has joined, use Firefox; Chrome can't reach the laptop from there. On any other phone, turn mobile data off so Chrome uses the Wi-Fi.</p>
+          <p>If no phone can load the page on a new laptop, allow Camera Control on public networks in Windows Defender Firewall.</p>
+        </div>
+        <p><b>New PIN</b> disconnects every phone. Closing the app ends every phone's login too, because each start makes a new PIN. The phone page can't keep the phone's screen on, so raise the phone's screen timeout.</p>
+
+        <h3 id="m-problems">When something goes wrong</h3>
+        <p>Problems with one camera show in red in that camera's column, so you always know which camera is affected. The other camera carries on as normal.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>You see</th><th>What to do</th></tr></thead>
+          <tbody>
+            <tr><td>"Reconnecting 0:42" over a dimmed picture</td><td>The camera dropped off Wi-Fi. The app reconnects by itself and reads every setting again when it's back. If the camera was recording, it keeps recording on its own.</td></tr>
+            <tr><td>"No reply from 192.168.43.20"</td><td>Check the camera is on, on the same network and in PC Remote. The app tries again every 15 seconds. Use <b>Search the network</b> or <b>Change IP address</b> if the address changed.</td></tr>
+            <tr><td>"Camera refused the user name or password"</td><td>Click <b>Edit login</b> and enter the access authentication details again. The app doesn't retry this by itself.</td></tr>
+            <tr><td>"This camera's fingerprint has changed"</td><td>Expected after resetting the camera. Check the new fingerprint on the camera before accepting it. If the camera wasn't reset, don't accept.</td></tr>
+            <tr><td>Regular stutters in live view</td><td>Windows' background Wi-Fi scans can cause this. See below.</td></tr>
+          </tbody>
+        </table></div>
+        <figure class="shot zoom"><img src="img/03-change-not-confirmed.png" width="1586" height="953" loading="lazy" alt="Red message in a column saying a change was not confirmed by the camera."></figure>
+        <h4>Live view stutters every few seconds</h4>
+        <p>Windows searches for Wi-Fi networks in the background, and on some laptops this causes short stutters. You can pause these searches for a shoot. While paused, the laptop won't join other networks by itself, and may not rejoin the camera network by itself if it drops. Open a Command Prompt with <b>Run as administrator</b>:</p>
+        <pre><code>netsh wlan set autoconfig enabled=no interface="Wi-Fi"</code></pre>
+        <p>Turn them back on when you finish:</p>
+        <pre><code>netsh wlan set autoconfig enabled=yes interface="Wi-Fi"</code></pre>
+        <p>If your Wi-Fi adapter has a different name, <code>netsh wlan show interfaces</code> lists it.</p>
+
+        <h3 id="m-fake">Trying it without cameras</h3>
+        <p>Open a Command Prompt or PowerShell window in the app folder and run:</p>
+        <pre><code>CameraControl.exe --fake</code></pre>
+        <p>You get two pretend cameras, an FX30 on the left and an A7C II on the right, playing test pictures. The <b>Pretend camera controls</b> window can drop a connection and bring it back, leave a change unanswered, switch between stills and movie mode, and lower the battery or card time.</p>
+        <figure class="shot zoom" style="max-width:340px"><img src="img/13-pretend-camera-controls.png" width="444" height="588" loading="lazy" alt="Pretend camera controls window with buttons per camera."></figure>
+        <p>With <code>--fake</code> the app doesn't read or change your saved cameras or passwords, and writes its log to <span class="path">fake.log</span>.</p>
+
+        <h3 id="m-files">Settings, passwords and logs</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>What</th><th>Where</th></tr></thead>
+          <tbody>
+            <tr><td>Settings</td><td><span class="path">%AppData%\SonyCameraControl\settings.json</span>: saved cameras (name, IP address, fingerprint, user name, live view quality), window position, tool choices. Never a password.</td></tr>
+            <tr><td>Passwords</td><td>Windows Credential Manager, under Windows Credentials, one entry per camera named <span class="path">SonyCameraControl:camera:&lt;id&gt;</span>. <b>Remove camera</b> in the column menu deletes it.</td></tr>
+            <tr><td>Your LUTs</td><td><span class="path">%AppData%\SonyCameraControl\luts\</span></td></tr>
+            <tr><td>Logs</td><td><span class="path">%AppData%\SonyCameraControl\logs\app.log</span>, up to 5 files of 5 MB. Never holds passwords or user names.</td></tr>
+          </tbody>
+        </table></div>
+        <p>Deleting the app folder doesn't remove these. To start again from nothing, delete <span class="path">%AppData%\SonyCameraControl</span> and the Credential Manager entries.</p>
+        <p>If the app ever stops with an error, the details are in <span class="path">app.log</span>; send that file along with any bug report.</p>
+
+        <h3 id="m-legal">Licence and warranty</h3>
+        <div class="note warn">
+          <p>A camera controlled through this app is no longer covered by its manufacturer's warranty.</p>
+          <p>Sony did not make this app and does not support it. It uses Sony's Camera Remote SDK under Sony's licence.</p>
+          <p>Do not use this app, or the Sony software inside it, for weapons or for any military purpose.</p>
+        </div>
+        <p><span class="path">NOTICES.txt</span> in the download holds the licences of libssh2 and the Cascadia Mono font, which the app includes. Sony, FX30 and A7C II are trademarks of Sony Group Corporation.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DOWNLOAD ============ -->
+<section class="block" id="download">
+  <div class="wrap">
+    <div class="download-box">
+      <div>
+        <h2>Get Camera Control</h2>
+        <p style="color:var(--text-2)">One zip with everything inside. Unzip it, run <span class="path">CameraControl.exe</span>, and add your cameras.</p>
+        <ul class="checklist">
+          <li>Windows 11, 64-bit</li>
+          <li>No installer, no .NET install, no administrator rights</li>
+          <li>Runs from any folder, including a USB stick</li>
+          <li>Not signed: click <b>More info › Run anyway</b> if SmartScreen warns</li>
+        </ul>
+      </div>
+      <div class="release-card">
+        <div class="row"><span class="k">version</span><span class="v dl-version-plain">0.1.0</span></div>
+        <div class="row"><span class="k">released</span><span class="v dl-date">19 Nov 2026</span></div>
+        <div class="row"><span class="k">file</span><span class="v dl-file">CameraControl-0.1.0.zip</span></div>
+        <div class="row"><span class="k">size</span><span class="v dl-size-plain">about 84 MB</span></div>
+        <div class="row"><span class="k">platform</span><span class="v">Windows x64</span></div>
+        <a class="btn btn-primary dl-link" href="https://github.com/goteam2/camera-control/releases/latest">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Download zip
+        </a>
+        <p style="margin:12px 0 0;text-align:center;font-size:13px"><a href="https://github.com/goteam2/camera-control/releases">All versions</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Camera Control is an independent app. Sony did not make it and does not support it. It uses Sony's Camera Remote SDK under Sony's licence.</p>
+    <p>Sony, FX30 and A7C II are trademarks of Sony Group Corporation.</p>
+  </div>
+</footer>
+
+<dialog class="lightbox" id="lightbox">
+  <button type="button" id="lb-close">Close (Esc)</button>
+  <img id="lb-img" src="img/32-sync-settings.png" alt="Screenshot, full size">
+  <p id="lb-cap"></p>
+</dialog>
+
+<script>
+// Fill in the latest release from GitHub. The page works without this: the links point at /releases/latest.
+(function () {
+  const repo = 'goteam2/camera-control';
+  fetch('https://api.github.com/repos/' + repo + '/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(rel => {
+      const asset = (rel.assets || []).find(a => /\.zip$/i.test(a.name));
+      if (!asset) return;
+      const version = (rel.tag_name || '').replace(/^v/, '');
+      const mb = Math.round(asset.size / 1048576);
+      const date = new Date(rel.published_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+      document.querySelectorAll('.dl-link').forEach(a => a.href = asset.browser_download_url);
+      document.querySelectorAll('.dl-version').forEach(e => e.textContent = 'Version ' + version);
+      document.querySelectorAll('.dl-version-plain').forEach(e => e.textContent = version);
+      document.querySelectorAll('.dl-size').forEach(e => e.textContent = 'zip, ' + mb + ' MB');
+      document.querySelectorAll('.dl-size-plain').forEach(e => e.textContent = mb + ' MB');
+      document.querySelectorAll('.dl-file').forEach(e => e.textContent = asset.name);
+      document.querySelectorAll('.dl-date').forEach(e => e.textContent = date);
+    })
+    .catch(() => {});
+})();
+
+// Live view tool tabs
+(function () {
+  const tabs = document.querySelectorAll('.tabs button');
+  const img = document.getElementById('tool-img');
+  const desc = document.getElementById('tool-desc');
+  tabs.forEach(b => b.addEventListener('click', () => {
+    tabs.forEach(t => t.setAttribute('aria-selected', String(t === b)));
+    img.src = b.dataset.img;
+    desc.textContent = b.dataset.desc;
+  }));
+})();
+
+// Click a screenshot to see it full size
+(function () {
+  const dlg = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lb-img');
+  const lbCap = document.getElementById('lb-cap');
+  document.querySelectorAll('.zoom').forEach(el => el.addEventListener('click', () => {
+    const img = el.tagName === 'IMG' ? el : el.querySelector('img');
+    const cap = el.querySelector && el.querySelector('figcaption');
+    lbImg.src = img.src; lbImg.alt = img.alt;
+    lbCap.textContent = cap ? cap.textContent : img.alt;
+    dlg.showModal();
+  }));
+  document.getElementById('lb-close').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+})();
+
+// Highlight the manual section in view
+(function () {
+  const links = [...document.querySelectorAll('.toc a')];
+  const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = map.get(en.target.id); if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px' });
+  map.forEach((_, id) => { const h = document.getElementById(id); if (h) obs.observe(h); });
+})();
+</script>
+</body>
+</html>
